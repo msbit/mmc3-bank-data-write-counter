@@ -1,5 +1,6 @@
 local bankSelectValue
 local bankDataCounts = {}
+local frameRates = {60, 50}
 
 for i = 0x00, 0x07 do
   bankDataCounts[i] = {}
@@ -35,8 +36,9 @@ local function onMemoryCpuWrite(address, value)
 end
 
 local function onEventEndFrame()
-  local frameCount = emu.getState().ppu.frameCount
-  if (frameCount % 1000) ~= 0 then
+  local state = emu.getState()
+  local frameCount = state.ppu.frameCount
+  if (frameCount % (frameRates[state.region] * 5)) ~= 0 then
     return
   end
 
