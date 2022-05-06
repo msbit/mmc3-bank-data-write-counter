@@ -1,10 +1,7 @@
-﻿local DEBOUNCE = 10
-
 local bankSelectValue
 local bankDataCounts = {}
-local previousFrameCount = 0
 
-for i = 0x00,0x07 do
+for i = 0x00, 0x07 do
   bankDataCounts[i] = {}
 end
 
@@ -38,22 +35,13 @@ local function onMemoryCpuWrite(address, value)
 end
 
 local function onEventEndFrame()
-  local mouseState = emu.getMouseState()
-  if mouseState.left == false then
+  local frameCount = emu.getState().ppu.frameCount
+  if (frameCount % 1000) ~= 0 then
     return
   end
-
-  local state = emu.getState()
-  local frameCount = state.ppu.frameCount
-
-  if (frameCount - DEBOUNCE) < previousFrameCount then
-    return
-  end
-
-  previousFrameCount = frameCount
 
   emu.log(string.format("[%d]", frameCount))
-  for bank = 0x00,0x07 do
+  for bank = 0x00, 0x07 do
     logBank(bankDataCounts, bank)
   end
   emu.log('')
