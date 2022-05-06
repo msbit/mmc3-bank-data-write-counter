@@ -1,23 +1,43 @@
-﻿DEBOUNCE = 10
+﻿local DEBOUNCE = 10
 
 local bankSelectValue
-local bankDataCounts = {
-  [0x06] = {},
-  [0x07] = {}
-}
+local bankDataCounts = {}
 local previousFrameCount = 0
 
-function onMemoryCpuWrite(address, value)
+for i = 0x00,0x07 do
+  bankDataCounts[i] = {}
+end
+
+local function tableKeys(t)
+  local result = {}
+  for k, _ in pairs(t) do
+    table.insert(result, k)
+  end
+  return result
+end
+
+local function logBank(dataCounts, bank)
+  local counts = dataCounts[bank]
+  local keys = tableKeys(counts)
+  table.sort(keys)
+
+  for _, value in pairs(keys) do
+    local count = counts[value]
+    emu.log(string.format(" > %02x:%02x %d", bank, value, count))
+  end
+end
+
+local function onMemoryCpuWrite(address, value)
   if (address & 0x01) == 0x00 then
     bankSelectValue = value
   end
 
-  if (address & 0x01) == 0x01 and ((bankSelectValue & 0x07) == 0x06 or (bankSelectValue & 0x07) == 0x07) then
+  if (address & 0x01) == 0x01 then
     bankDataCounts[bankSelectValue & 0x07][value] = (bankDataCounts[bankSelectValue & 0x07][value] or 0) + 1
   end
 end
 
-function onEventEndFrame()
+local function onEventEndFrame()
   local mouseState = emu.getMouseState()
   if mouseState.left == false then
     return
@@ -33,12 +53,8 @@ function onEventEndFrame()
   previousFrameCount = frameCount
 
   emu.log(string.format("[%d]", frameCount))
-  for bank, counts in pairs(bankDataCounts)
-  do
-    for value, count in pairs(counts)
-    do
-      emu.log(string.format(" > %02x:%02x %d", bank, value, count))
-    end
+  for bank = 0x00,0x07 do
+    logBank(bankDataCounts, bank)
   end
   emu.log('')
 end
