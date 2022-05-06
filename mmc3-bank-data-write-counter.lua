@@ -26,9 +26,7 @@ local function logBank(dataCounts, bank)
 end
 
 local function onMemoryCpuWrite(address, value)
-  if (address & 0x01) == 0x00 then
-    bankSelectValue = value
-  end
+  if (address & 0x01) == 0x00 then bankSelectValue = value end
 
   if (address & 0x01) == 0x01 then
     bankDataCounts[bankSelectValue & 0x07][value] = (bankDataCounts[bankSelectValue & 0x07][value] or 0) + 1
@@ -38,9 +36,7 @@ end
 local function onEventEndFrame()
   local state = emu.getState()
   local frameCount = state.ppu.frameCount
-  if (frameCount % (frameRates[state.region] * 5)) ~= 0 then
-    return
-  end
+  if (frameCount % (frameRates[state.region] * 5)) ~= 0 then return end
 
   emu.log(string.format("[%d]", frameCount))
   for bank = 0x00, 0x07 do
